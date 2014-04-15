@@ -21,7 +21,8 @@ Here is a list of the main benefits it provides:
 8. Persistence of object properties in one line of code(based on page postback).
 
 9. Interoperability amongst different ASP.NET storage types.
-
+ 
+10. Support for child keys.
 
 **Usage:**
 
@@ -43,11 +44,16 @@ Assigning and accessing a value can then simply be done like so:
     myCache.Value = "some value";
     var someValue = myCache.Value;
 
-However several values can be stored under the same cache store using 
+However several values can be stored under any store using child keys like so:
+
+    myValue.Set("someChildKey", DateTime.Now.ToString());
+    var myValue = myCache.Get("someChildKey");
+
+A function can also be used to fetch the value the first time the store is accessed:
 
     var myValue = myCache.Get("someChildKey", delegate
     {
-        return DateTime.Now.ToString(); // This line of code will only be read once during the cache lifetime.
+        return DateTime.Now.ToString(); // This will only be read once during the cache lifetime.
     });
 
 **Supported Storage Types:**
