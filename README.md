@@ -1,21 +1,29 @@
-Introduction:
+**Introduction:**
 
 The Univar library essentially provides an all-in-one toolset for dealing with local storages in ASP.NET.
 
 Here is a list of the main benefits it provides:
-1. Minimal syntax usage.
-2. Strong typing.
-3. Support for generic types in cookies and query strings.
-4. Keyless encryption support for data exposed to the client(the key is auto generated from the client machine key).
-5. Compression support for size constrained data storage types.
-6. A JSON document based server side storage.
-4. Enhanced manageability by promoting maintainable code.
-5. Ability to manipulate data in a disconnected manner to reduce overhead.
-6. Persistence of object properties in one line of code(requires page postback).
-7. Interoperability amongst different ASP.NET storage types.
+
+1. Strong typing and support for generic types.
+
+2. Minimal syntax usage by sharing a sinlge interface.
+
+3. Keyless encryption support for data exposed to the client(the key is auto generated from the client machine key).
+
+4. Compression support for size constrained data storage types.
+
+5. A JSON document based server side storage.
+
+6. Enhanced manageability by promoting maintainable code.
+
+7. Ability to manipulate data in a disconnected manner to reduce overhead on high latency storages.
+
+8. Persistence of object properties in one line of code(based on page postback).
+
+9. Interoperability amongst different ASP.NET storage types.
 
 
-Usage:
+**Usage:**
 
 Here is the code used to read/write to the cache:
 
@@ -42,7 +50,7 @@ However several values can be stored under the same cache store using
         return DateTime.Now.ToString(); // This line of code will only be read once during the cache lifetime.
     });
 
-The following data stores are supported:
+**Supported Storage Types:**
 
 1. CacheStore
 2. CookieStore
@@ -83,7 +91,7 @@ The interesting thing is that they all inherit from a single interface. Here it 
         void SaveChanges(bool restoreConnection);
     }
 
-
+**Dynamic Store:**
 
 The DynamicStore however goes even further by encompassing all the above stores into one. It has the ability to read/write to and from several storage types in a specified order such that if one fails the next one will automatically be used. Here is a typical declaration:
 
@@ -91,4 +99,6 @@ The DynamicStore however goes even further by encompassing all the above stores 
 
 The JsonDoc store is a file based store which has the advantage of not being as volatile as the cache but can be much slower to read/write. In this example the JsonDoc store is mostly used for backup purposes and is only read during startup. However since all write operations are carried out on both stores everytime this might create some additional overhead.
 
-We've only scratched the surface on what can be done with the Univar api. The documentation here is very sparse but there's a fair amount of comment already in the code. I will also provide more documentation on a request basis. So feel free let me know if there's anything in particular that interests you.
+**Further Documentation:**
+
+We've only scratched the surface on what can be done here. I acknowledge the documentation is very sparse but there's a fair amount of comment already in the code already and I will gladly provide additional information upon request. So feel free let me know if there's anything in particular that interests you.
