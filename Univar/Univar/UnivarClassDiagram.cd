@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Univar.CompositeStore&lt;T&gt;">
+    <Position X="9" Y="7.5" Width="1.5" />
+    <InheritanceLine Type="Univar.DynamicStore&lt;T&gt;" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="13.188" Y="7.5" />
+        <Point X="13.188" Y="6.919" />
+        <Point X="9.812" Y="6.919" />
+        <Point X="9.812" Y="7.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAgAABAAAA=</HashCode>
+      <FileName>DynamicStores\CompositeStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.PersistentPropertyStore&lt;T&gt;">
+    <Position X="7.25" Y="7.5" Width="1.5" />
+    <InheritanceLine Type="Univar.DynamicStore&lt;T&gt;" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="13.188" Y="7.5" />
+        <Point X="13.188" Y="6.919" />
+        <Point X="8" Y="6.919" />
+        <Point X="8" Y="7.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>MAAAAAAAAAAABAAAAAIAAAAAAEAAAAAACAAgAAIAAAA=</HashCode>
+      <FileName>DynamicStores\PersistentPropertyStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.NullableDynamicStore&lt;T&gt;">
+    <Position X="5.5" Y="7.5" Width="1.5" />
+    <InheritanceLine Type="Univar.DynamicStore&lt;T&gt;" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="13.188" Y="7.5" />
+        <Point X="13.188" Y="6.919" />
+        <Point X="6.312" Y="6.919" />
+        <Point X="6.312" Y="7.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>DynamicStores\NullableDynamicStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.PersistentObjectStore&lt;T&gt;">
+    <Position X="10.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAAAAAAAAAAAAAAAABACAAAAACAAAA=</HashCode>
+      <FileName>DynamicStores\PersistentObjectStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.DynamicStore&lt;T&gt;">
+    <Position X="12.5" Y="7.5" Width="1.75" />
+    <InheritanceLine Type="Univar.DataStore&lt;T, TStore&gt;" ManuallyRouted="true" FixedToPoint="true">
+      <Path>
+        <Point X="4.75" Y="6.679" />
+        <Point X="13.375" Y="6.679" />
+        <Point X="13.375" Y="7.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>EAQIAAABMiAERgAAAgtBiAQAAIZAAAAgQAAkgABAEAA=</HashCode>
+      <FileName>DynamicStores\DynamicStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.Storage">
+    <Position X="0.5" Y="0.5" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Univar.Storage.Cache">
+        <TypeIdentifier>
+          <NewMemberFileName>StaticStorages\Cache.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Univar.Storage.Cookie">
+        <TypeIdentifier>
+          <NewMemberFileName>StaticStorages\Cookie.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Univar.Storage.JsonDoc" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Storage\JsonDoc.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Univar.Storage.QueryString">
+        <TypeIdentifier>
+          <NewMemberFileName>StaticStorages\QueryString.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Univar.Storage.Session">
+        <TypeIdentifier>
+          <NewMemberFileName>StaticStorages\Session.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Univar.Storage.WebService" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Storage\WebService.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Storage\Cache.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.StorageUser">
+    <Position X="3.25" Y="11.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAACAQAAAAAIABAAAAQwAACAAAAEDAAAASQAAAA=</HashCode>
+      <FileName>Storage\StorageUser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.Helpers.Compressor">
+    <Position X="5.75" Y="11.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIAAAAACAAAAAAAAgCAAAAAAAAgAAA=</HashCode>
+      <FileName>Helpers\Compressor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.Helpers.Encryptor">
+    <Position X="5.75" Y="15" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAQAAAAAAAAQAAAAAAAAAAAAAAAAAABAAAgAAAA=</HashCode>
+      <FileName>Helpers\CookieEncryptor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.Helpers.Serializer">
+    <Position X="5.75" Y="17.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAAACAAAACDAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Helpers\JsonSerializer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.Helpers.Reflector">
+    <Position X="5.75" Y="13.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAA=</HashCode>
+      <FileName>Helpers\Reflector.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.CacheStore">
+    <Position X="5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\CacheStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.CacheStore&lt;T&gt;">
+    <Position X="5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAABBMACAAgCAAACAAAAAACBAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Stores\CacheStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.CookieStore">
+    <Position X="8.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\CookieStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.CookieStore&lt;T&gt;">
+    <Position X="8.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAABBMCAAAgKAAAIAgAAAAgAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\CookieStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.QueryStringStore">
+    <Position X="10.25" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\QueryStringStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.QueryStringStore&lt;T&gt;">
+    <Position X="10.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIABABMCAAAgCAAAIAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\QueryStringStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.SessionStore">
+    <Position X="6.75" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\SessionStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.SessionStore&lt;T&gt;">
+    <Position X="6.75" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAIAAABMAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\SessionStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.DataStore&lt;T, TStore&gt;">
+    <Position X="3" Y="0.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>oAwJAAQhMkAEFiTMiEAAAIEAQEBAABAAAAAgACBAQAA=</HashCode>
+      <FileName>Stores\DataStore.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Orientation="Bottom" Position="0.817" />
+  </Class>
+  <Class Name="Univar.QueryStringBuilder">
+    <Position X="3.25" Y="16.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAEABCABAAAIAAAgQAAAAAAAAAAAAA=</HashCode>
+      <FileName>QueryStringBuilder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.JsonDocStore&lt;T&gt;">
+    <Position X="12" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAABBMCAAAgCAAAAAACAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\JsonDocStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Univar.JsonDocStore">
+    <Position X="12" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Stores\JsonDocStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="Univar.Sources">
+    <Position X="8.25" Y="11.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAhQAAAASAKQgmIBDABAIBgAICiBAAABSFwARA=</HashCode>
+      <FileName>Enums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Univar.Scopes">
+    <Position X="10.5" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABABAAAAAAAQIAAAAAAAAAAAAAAAAAABAAAAEAAAA=</HashCode>
+      <FileName>Enums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Univar.SessionIdentitySource">
+    <Position X="10.5" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAACAAAAAAAAA=</HashCode>
+      <FileName>Enums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Univar.Helpers.JsonEncoding">
+    <Position X="10.5" Y="13.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAABAAACAAAAAEgAAA=</HashCode>
+      <FileName>Helpers\JsonSerializer.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

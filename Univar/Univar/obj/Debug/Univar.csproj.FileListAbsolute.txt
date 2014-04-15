@@ -1,0 +1,7 @@
+F:\WIN7VHD\LH\Univar\Univar\Univar\bin\Debug\Univar.dll
+F:\WIN7VHD\LH\Univar\Univar\Univar\bin\Debug\Univar.pdb
+F:\WIN7VHD\LH\Univar\Univar\Univar\bin\Debug\Newtonsoft.Json.dll
+F:\WIN7VHD\LH\Univar\Univar\Univar\bin\Debug\Newtonsoft.Json.xml
+F:\WIN7VHD\LH\Univar\Univar\Univar\obj\Debug\Univar.dll
+F:\WIN7VHD\LH\Univar\Univar\Univar\obj\Debug\Univar.pdb
+F:\WIN7VHD\LH\Univar\Univar\Univar\obj\Debug\Univar.csprojResolveAssemblyReference.cache
