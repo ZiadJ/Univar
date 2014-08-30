@@ -42,7 +42,7 @@ namespace Univar
         {
             get
             {
-                GetValue<object>(SourceKey, false, false, DataSources);
+                GetValue<object>(true, SourceKey, false, false, DataSources);
                 return LastAccessedSource;
             }
         }
@@ -79,6 +79,16 @@ namespace Univar
         public TimeSpan? CookieAndCacheLifeTime
         {
             set { CacheLifeTime = CookieLifeTime = value; }
+        }
+
+        public TimeSpan? CookieAndJsonDocLifeTime
+        {
+            set { JsonDocLifeTime = CookieLifeTime = value; }
+        }
+
+        public TimeSpan? CacheAndJsonDocLifeTime
+        {
+            set { CacheLifeTime = JsonDocLifeTime = value; }
         }
 
         /// <summary>
@@ -139,7 +149,7 @@ namespace Univar
             CacheItemPriority = CacheItemPriority.Default;
             CacheDependencies = cacheDependency;
             JsonDocLifeTime = JsonDocLifeTime ?? Storage.JsonDoc.DefaultLifeTime;
-            MaximumJsonDocSize = 5 * 1024 * 1024;
+            MaximumJsonDocSize = 25 * 1024 * 1024;
         }
 
 
@@ -235,20 +245,16 @@ namespace Univar
         /// <returns>An object of type T representing the value.</returns>
         protected override T GetValue(string sourceKey)
         {
-            T value = GetValue<T>(sourceKey, IsCompressed, IsEncrypted, DataSources);
+            T value = GetValue<T>(false, sourceKey, IsCompressed, IsEncrypted, DataSources);
             return LastAccessedSource == Source.None ? DefaultValue : value;
         }
-
-        /// <summary>
-        /// Gets the value in its undeserialized state.
-        /// An array of storage sources can be specified using the dataSources parameter.
-        /// The default storage source used is the session when none is specified.
-        /// </summary>
-        /// <param name="sourceKey">A nullable value specifying the child key under which the value is stored.</param>
-        /// <param name="dataSourceUsed">Returns the storage type from which the value was retrieved.
-        /// Sources.None is returned when the key is inexistant.</param>
-        /// <returns>An object representing the value.</returns>
-        protected objT GetValue<objT>(string sourceKey, bool isCompressed, bool isEncrypted, params Source[] dataSources)
+    
+        protected objT GetValue<objT>(string childKey, bool isCompressed, bool isEncrypted, params Source[] dataSources)
+        {
+            return GetValue<objT>(false, childKey, isCompressed, isEncrypted, dataSources);
+        }
+          
+        private objT GetValue<objT>(bool keepInSerializedStateIfAny, string childKey, bool isCompressed, bool isEncrypted, params Source[] dataSources)
         {
             SourceScope scopeAndSource = null;
             object value = null;
@@ -258,7 +264,7 @@ namespace Univar
             {
                 scopeAndSource = GetSourceScope(source);
 
-                string scopeKey = StorageUser.GetKeyByScope(null, scopeAndSource.Scope, HttpContext, TimeSpan.MaxValue, SuppressReadErrors);
+                string scopeKey = Storage.User.GetKeyByScope(null, scopeAndSource.Scope, HttpContext, TimeSpan.MaxValue, SuppressReadErrors);
 
                 bool isSerialized = false;
 
@@ -267,22 +273,22 @@ namespace Univar
                     switch (scopeAndSource.Source)
                     {
                         case Source.Session:
-                            value = Storage.Session.Get<object>(scopeKey + sourceKey, HttpContext);
+                            value = Storage.Session.Get<object>(scopeKey + childKey, HttpContext);
                             break;
                         case Source.Cookie:
-                            value = Storage.Cookie.Get(scopeKey + sourceKey, isCompressed, isEncrypted, SuppressReadErrors);
+                            value = Storage.Cookie.Get(scopeKey + childKey, isCompressed, isEncrypted, SuppressReadErrors);
                             isSerialized = true;
                             break;
                         case Source.Cache:
-                            value = Storage.Cache.Get<object>(scopeKey + sourceKey);
+                            value = Storage.Cache.Get<object>(scopeKey + childKey);
                             break;
                         case Source.JsonDoc:
-                            value = Storage.JsonDoc.GetFromFile(JsonDocFolderPath, string.IsNullOrEmpty(scopeKey) ? "Shared-" + sourceKey : scopeKey,
-                                sourceKey, isEncrypted);
+                            var fileName = Storage.JsonDoc.GetFilenameByScope(scopeKey, childKey);
+                            value = Storage.JsonDoc.GetFromFile(JsonDocFolderPath, fileName, childKey, isCompressed, isEncrypted);
                             isSerialized = true;
                             break;
                         case Source.QueryString:
-                            value = Storage.QueryString.Get(sourceKey, isCompressed, isEncrypted, SuppressReadErrors);
+                            value = Storage.QueryString.Get(childKey, isCompressed, isEncrypted, SuppressReadErrors);
                             isSerialized = true;
                             break;
                     }
@@ -292,8 +298,8 @@ namespace Univar
                 {
                     LastAccessedSource = source;
 
-                    if (isSerialized)
-                        return Serializer.Deserialize<objT>(value.ToString(), JsonEncoding.None, default(objT), SuppressReadErrors);
+                    if (!keepInSerializedStateIfAny && isSerialized)
+                        return Serializer.Deserialize<objT>(value.ToString(), default(objT), SuppressReadErrors);
                     else
                         return (objT)value;
                 }
@@ -315,7 +321,7 @@ namespace Univar
         /// <typeparam name="objT">The type of the value.</typeparam>
         /// <param name="key">A nullable value specifying the key under which the value is stored.</param>
         /// <param name="value">The value to be stored.</param>
-        protected void SetValue<objT>(string sourceKey, objT value, bool isCompressed, bool isEncrypted, bool ignoreReadOnlyAttribute)
+        protected void SetValue<objT>(string childKey, objT value, bool isCompressed, bool isEncrypted, bool ignoreReadOnlyAttribute)
         {
             SourceScope scopeAndSource = null;
 
@@ -326,28 +332,29 @@ namespace Univar
 
                 scopeAndSource = GetSourceScope(source);
 
-                string scopeKey = StorageUser.GetKeyByScope(null, scopeAndSource.Scope, HttpContext, TimeSpan.MaxValue, SuppressReadErrors);
+                string scopeKey = Storage.User.GetKeyByScope(null, scopeAndSource.Scope, HttpContext, TimeSpan.MaxValue, SuppressReadErrors);
 
                 if (scopeKey != null)
                 {
                     switch (scopeAndSource.Source)
                     {
                         case Source.Session:
-                            Storage.Session.Set(scopeKey + sourceKey, value, HttpContext);
+                            Storage.Session.Set(scopeKey + childKey, value, HttpContext);
                             break;
                         case Source.Cookie:
-                            Storage.Cookie.Set<objT>(scopeKey + sourceKey, value, CookieLifeTime, isCompressed, isEncrypted,
+                            Storage.Cookie.Set<objT>(scopeKey + childKey, value, CookieLifeTime, isCompressed, isEncrypted,
                                 CookiePath, CookieDomain, IsCookieHttpOnly, IsSecureCookie, SuppressReadErrors);
                             break;
                         case Source.Cache:
-                            Storage.Cache.Set(scopeKey + sourceKey, value, CacheLifeTime,
+                            Storage.Cache.Set(scopeKey + childKey, value, CacheLifeTime,
                                 IsCacheSlidingExpiration, CacheDependencies, CacheItemPriority, CacheItemRemovedCallback);
                             break;
                         case Source.JsonDoc:
-                            Storage.JsonDoc.WriteFile<objT>(JsonDocFolderPath, string.IsNullOrEmpty(scopeKey) ? "Shared-" + sourceKey : scopeKey, sourceKey, value, JsonDocLifeTime, isEncrypted, MaximumJsonDocSize, SuppressReadErrors);
+                            var fileName = Storage.JsonDoc.GetFilenameByScope(scopeKey, childKey);
+                            Storage.JsonDoc.WriteToFile<objT>(JsonDocFolderPath, fileName, childKey, value, JsonDocLifeTime, isCompressed, isEncrypted, MaximumJsonDocSize, SuppressReadErrors);
                             break;
                         case Source.QueryString:
-                            Storage.QueryString.Set<objT>(sourceKey, value, isCompressed, isEncrypted);
+                            Storage.QueryString.Set<objT>(childKey, value, isCompressed, isEncrypted);
                             break;
                     }
                 }
@@ -360,7 +367,7 @@ namespace Univar
         /// </summary>
         protected override object GetData(string key)
         {
-            object data = GetValue<object>(key, false, false, DataSources);
+            object data = GetValue<object>(true, key, false, false, DataSources);
             return data;
         }
 
@@ -465,8 +472,8 @@ namespace Univar
                         keys.AddRange(Storage.Cookie.GetKeys(regexMatcher));
                         break;
                     case Source.JsonDoc:
-                        throw new NotImplementedException("Key fetching for JsonDoc sources is not implemented.");
-                        
+                        keys.AddRange(Storage.JsonDoc.GetKeys(regexMatcher));
+                        break;
                     case Source.QueryString:
                         keys.AddRange(Storage.QueryString.GetKeys(regexMatcher));
                         break;

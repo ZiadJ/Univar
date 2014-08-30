@@ -24,11 +24,11 @@ namespace Univar.Helpers
 
         public static string Encrypt(string text, string purpose)
         {
-            var buf = Encoding.UTF8.GetBytes(text);
+            var buf = text == null
+                ? new byte[] { }
+                : Encoding.UTF8.GetBytes(text);
             var protectedBytes = MachineKey.Protect(buf, purpose);
             return Convert.ToBase64String(protectedBytes);
-
-            //byte[] buf = Encoding.UTF8.GetBytes(text);
             //return (string)MachineKey.Encode(buf, machineProtection);
         }
 
@@ -58,8 +58,8 @@ namespace Univar.Helpers
             {
                 buf = Convert.FromBase64String(text);
                 buf = MachineKey.Unprotect(buf, purpose);
-                
                 //buf = (byte[])MachineKey.Decode(text, machineProtection);
+
                 if (buf == null || buf.Length == 0)
                     throw new Exception();
             }

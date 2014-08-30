@@ -10,8 +10,8 @@ using Univar.Helpers;
 namespace Univar
 {
 	/// <summary>
-	/// A class inheriting from DynamicStore that adds the ability to include an plain objects
-	/// in the source list. The target property name must be specified for object(s) specified
+	/// A class inheriting from DynamicStore that adds the ability to persit the property of any
+	/// object to available storages. The target property name must be specified for object(s) specified
 	/// and must obviously not be readonly if any changes are to be applied to them. Only one
 	/// property name can be used in this implementation.
 	/// </summary>
@@ -83,7 +83,7 @@ namespace Univar
 					else
 					{    // Serialization is not applied on primitive or string types.
 						// This allows json data to be stored in a hidden field as well.
-						Reflector.SetPropertyValue<object>(obj, PropertyName, Serializer.Serialize<T>(value, JsonEncoding.None, true));
+						Reflector.SetPropertyValue<object>(obj, PropertyName, Serializer.Serialize<T>(value, false, true));
 					}
 				}
 			}

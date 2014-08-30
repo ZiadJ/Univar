@@ -37,9 +37,7 @@ namespace Univar
                 T result;
 
                 using (var reader = new StringReader(Encoding.UTF8.GetString(response)))
-                {
                     result = Helpers.Serializer.Deserialize<T>(reader.ReadToEnd(), false);
-                }
 
                 return result;
             }
@@ -90,7 +88,6 @@ namespace Univar
                 return new UTF8Encoding().GetBytes(requestStream.ToString());
             }
 
-
             private static string GetRequestFormat(string url, string methodName)
             {
                 const string XPATH_TO_WEB_METHOD_INFORMATION_NODE = "/types/schema/element[@name=\"{0}\"]/*";
@@ -111,9 +108,7 @@ namespace Univar
                 var baseStream = response.GetResponseStream();
                 string wsdl;
                 using (var responseStreamReader = new StreamReader(baseStream))
-                {
                     wsdl = responseStreamReader.ReadToEnd();
-                }
 
                 return ExtractTypesXmlFragment(wsdl);
             }
@@ -147,7 +142,7 @@ namespace Univar
             private static string BuildRequestFormatFromNodeList(System.Xml.XmlNodeList parameterInformationNodes)
             {
                 const string PARAMETER_NAME_VALUE_PAIR_FORMAT = "{0}=[{1}]";
-                StringBuilder requestFormatToReturn = new System.Text.StringBuilder();
+                var requestFormatToReturn = new StringBuilder();
 
                 for (int i = 0; i < parameterInformationNodes.Count; i++)
                 {

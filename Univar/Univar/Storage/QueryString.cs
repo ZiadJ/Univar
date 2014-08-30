@@ -15,7 +15,7 @@ namespace Univar
         {
             public static int GetSize()
             {
-                return HttpUtility.UrlDecode(StorageUser.HttpContext.Request.QueryString.ToString()).Length;
+                return HttpUtility.UrlDecode(User.HttpContext.Request.QueryString.ToString()).Length;
             }
 
             /// <summary>
@@ -39,7 +39,7 @@ namespace Univar
                 if (cloneForEditing)
                     return new QueryStringBuilder(true).CloneCurrentCollection();
                 else
-                    return StorageUser.HttpContext.Request.QueryString;
+                    return User.HttpContext.Request.QueryString;
             }
 
             /// <summary>
@@ -48,7 +48,7 @@ namespace Univar
             /// <returns>The query string data</returns>
             public static string Get()
             {
-                return StorageUser.HttpContext.Request.Url.Query;
+                return User.HttpContext.Request.Url.Query;
             }
 
             public static T Get<T>(string key)
@@ -60,7 +60,7 @@ namespace Univar
             {
                 return Serializer.Deserialize<T>(
                     Get(key, uncompress, decrypt, suppressReadErrors)
-                    , JsonEncoding.None, default(T), suppressReadErrors);
+                    , default(T), suppressReadErrors);
             }
 
             public static string Get(string key)
@@ -74,7 +74,7 @@ namespace Univar
                 // It took me quite a long time to figure this out but for unknown reasons, the request
                 // replaces every '+' character in the query with an empty character. 
                 // To compensate all spaces need to be restored as their original '+' equivalent.
-                string value = StorageUser.HttpContext.Request.QueryString[key];
+                string value = User.HttpContext.Request.QueryString[key];
 
                 if (value == null)
                     return null;
@@ -97,7 +97,7 @@ namespace Univar
 
             public static void Set(string value)
             {
-                RedirectTo(StorageUser.HttpContext.Request.Url.AbsolutePath, value, null, false);
+                RedirectTo(User.HttpContext.Request.Url.AbsolutePath, value, null, false);
             }
 
             public static void Set(string key, string value)
@@ -130,8 +130,8 @@ namespace Univar
             {
                 string qs = new QueryStringBuilder(!clearCurrentParams, queryStringCollection).ToString();
                 // Redirect only if the browser query string is different from the the new value specified.
-                if (qs != StorageUser.HttpContext.Request.QueryString.ToString())
-                    StorageUser.HttpContext.Response.Redirect(StorageUser.HttpContext.Request.Url.AbsolutePath + "?" + qs, false);
+                if (qs != User.HttpContext.Request.QueryString.ToString())
+                    User.HttpContext.Response.Redirect(User.HttpContext.Request.Url.AbsolutePath + "?" + qs, false);
             }
 
             public static void Set<T>(bool clearCurrentParams, string key, T value)
@@ -160,7 +160,7 @@ namespace Univar
             /// <param name="clearQueryString">Clear the query string when done.</param>
             public static void CopyQueryStringToSession(bool clearQueryString)
             {
-                foreach (KeyValuePair<string, string> keyValue in StorageUser.HttpContext.Request.QueryString)
+                foreach (KeyValuePair<string, string> keyValue in User.HttpContext.Request.QueryString)
                     Storage.Session.Set(keyValue.Key, keyValue.Value);
 
                 if (clearQueryString)
@@ -173,7 +173,7 @@ namespace Univar
             /// <param name="clearQueryString">Clear the query string when done.</param>
             public static void CopyQueryStringToCookie(TimeSpan lifetime, bool clearQueryString)
             {
-                foreach (KeyValuePair<string, string> keyValue in StorageUser.HttpContext.Request.QueryString)
+                foreach (KeyValuePair<string, string> keyValue in User.HttpContext.Request.QueryString)
                     Storage.Cookie.Set(keyValue.Key, keyValue.Value, lifetime);
 
                 if (clearQueryString)
@@ -187,7 +187,7 @@ namespace Univar
             /// </param>
             public static void Clear(bool endResponse)
             {
-                StorageUser.HttpContext.Response.Redirect(StorageUser.HttpContext.Request.Url.AbsolutePath, endResponse);
+                User.HttpContext.Response.Redirect(User.HttpContext.Request.Url.AbsolutePath, endResponse);
             }
 
             /// <summary>
@@ -210,7 +210,7 @@ namespace Univar
             /// <param name="control">The control to which the page will be anchored to.</param>
             public static void SetAnchor(System.Web.UI.Control control)
             {
-                RedirectTo(StorageUser.HttpContext.Request.Url.PathAndQuery, "", control.ClientID, false);
+                RedirectTo(User.HttpContext.Request.Url.PathAndQuery, "", control.ClientID, false);
             }
 
             /// <summary>
@@ -219,7 +219,7 @@ namespace Univar
             /// <param name="anchor">The client control ID to which the page will be anchored to.</param>
             public static void SetAnchor(string anchor, bool endResponse)
             {
-                RedirectTo(StorageUser.HttpContext.Request.Url.PathAndQuery, "", anchor, endResponse);
+                RedirectTo(User.HttpContext.Request.Url.PathAndQuery, "", anchor, endResponse);
             }
 
             public static void RedirectTo(string url, string queryString, bool endResponse)
@@ -229,7 +229,7 @@ namespace Univar
 
             public static void RedirectTo(string url, string queryString, string anchor, bool endResponse)
             {
-                StorageUser.HttpContext.Response.Redirect(CreateUrl(url, queryString, anchor), endResponse);
+                User.HttpContext.Response.Redirect(CreateUrl(url, queryString, anchor), endResponse);
             }
 
             //public static void RedirectTo(string url, string queryString, string anchor, int width, int height)
@@ -249,7 +249,7 @@ namespace Univar
 
             public new static string ToString()
             {
-                return StorageUser.HttpContext.Request.QueryString.ToString();
+                return User.HttpContext.Request.QueryString.ToString();
             }
 
             public static List<string> GetKeys()
@@ -259,7 +259,7 @@ namespace Univar
 
             public static List<string> GetKeys(Regex regexMatcher)
             {
-                return StorageUser.HttpContext.Request.QueryString.AllKeys
+                return User.HttpContext.Request.QueryString.AllKeys
                     .Where(key => regexMatcher == null || regexMatcher.IsMatch(key)).ToList();
             }
         }

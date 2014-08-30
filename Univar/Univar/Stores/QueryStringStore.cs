@@ -47,7 +47,7 @@ namespace Univar
 			if (value == null)
 				return DefaultValue;
 			else
-				return Serializer.Deserialize<T>(value, JsonEncoding.None, DefaultValue, SuppressReadErrors);
+				return Serializer.Deserialize<T>(value, DefaultValue, SuppressReadErrors);
 		}
 
 		protected override void SetValue(string key, T value, TimeSpan? lifeTime)

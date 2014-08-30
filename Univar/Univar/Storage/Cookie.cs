@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace Univar
 {
-
     public static partial class Storage
     {
         public static class Cookie
@@ -19,9 +18,9 @@ namespace Univar
             {
                 get
                 {
-                    if (StorageUser.HttpContext == null)
+                    if (User.HttpContext == null)
                         return false;
-                    return StorageUser.HttpContext.Request.Browser.Cookies;
+                    return User.HttpContext.Request.Browser.Cookies;
                 }
             }
 
@@ -34,7 +33,7 @@ namespace Univar
             {
                 return Serializer.Deserialize<T>(
                     Get(key, uncompress, decrypt, SuppressReadErrors)
-                    , JsonEncoding.None, default(T), SuppressReadErrors);
+                    , default(T), SuppressReadErrors);
             }
 
             public static string Get(string key)
@@ -64,7 +63,7 @@ namespace Univar
 
                 try
                 {
-                    cookie = StorageUser.HttpContext.Request.Cookies[keys[0]];
+                    cookie = User.HttpContext.Request.Cookies[keys[0]];
                     if (cookie != null)
                     {
                         if (keys.Length < 2)
@@ -166,8 +165,8 @@ namespace Univar
                     return false;
 
                 HttpCookie cookie;
-                HttpResponse response = StorageUser.HttpContext.Response;
-                HttpRequest request = StorageUser.HttpContext.Request;
+                HttpResponse response = User.HttpContext.Response;
+                HttpRequest request = User.HttpContext.Request;
 
                 try
                 {
@@ -235,7 +234,7 @@ namespace Univar
 
             public static IEnumerable<string> GetKeys(Regex regexMatcher)
             {
-                return StorageUser.HttpContext.Request.Cookies.AllKeys
+                return User.HttpContext.Request.Cookies.AllKeys
                     .Where(key => regexMatcher == null || regexMatcher.IsMatch(key));
             }
         }

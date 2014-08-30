@@ -8,31 +8,31 @@ namespace Univar
 {
     public interface IDataStore<T>
     {
+        HttpContext HttpContext { get; set; }
+        Source Source { get; }
         string SourceKey { get; set; }
+        object Data { get; set; }
+        T DefaultValue { get; set; }
+        string Key { get; }
+        bool HasKey { get; }
         bool HasChildKey(string childKey);
+        int ReadTimesAllowed { get; set; }
+        bool SuppressReadErrors { get; set; }
+        T Get<TKey>(TKey childKey);
+        void Set<TKey>(TKey childKey, TimeSpan? lifeTime, T value);
         void Clear();
         List<string> Clear(bool includeChildren);
         List<string> Clear(Regex regexPattern);
         void Clear<TKey>(TKey childKey);
-        void Connect(bool saveChangesIfAny);
-        TimeSpan CookieBasedUserIDLifetime { get; set; }
-        T DefaultValue { get; set; }
-        void Disconnect();
-        T Get<TKey>(TKey childKey);
-        HttpContext HttpContext { get; set; }
-        //bool IsAsynchronous { get; set; }
-        bool IsConnected { get; }
-        Source Source { get; }
-        string Key { get; }
-        bool HasKey { get; }
-        object Data { get; set; }
-        int ReadTimesAllowed { get; set; }
-        void SaveChanges();
-        void SaveChanges(bool restoreConnection);
-        void Set<TKey>(TKey childKey, TimeSpan? lifeTime, T value);
-        bool SuppressReadErrors { get; set; }
+        T Value { get; set; }
         string ToString();
         string ToString(JsonEncoding encoder);
-        T Value { get; set; }
+        TimeSpan CookieBasedUserIDLifetime { get; set; }
+        void Disconnect();
+        void Connect(bool saveChangesIfAny);
+        bool IsConnected { get; }
+        void SaveChanges();
+        void SaveChanges(bool restoreConnection);
+        //bool IsAsynchronous { get; set; }
     }
 }

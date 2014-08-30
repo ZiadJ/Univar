@@ -84,7 +84,7 @@ namespace Univar
         public DataStore(T defaultValue, string sourceKey, Scope scope, Source source)
         {
             if (sourceKey != null && sourceKey.Contains(Storage.KeyDelimiter))
-                throw new ArgumentException("The source key cannot contain the delimiter key, " + Storage.KeyDelimiter + ".");
+                throw new ArgumentException("The source key cannot contain the delimiter key, " + Storage.KeyDelimiter + ", itself.");
 
             SourceKey = sourceKey;
             DefaultValue = defaultValue;
@@ -99,7 +99,7 @@ namespace Univar
         {
             get
             {
-                return StorageUser.GetKeyByScope(SourceKey, Scope, HttpContext,
+                return Storage.User.GetKeyByScope(SourceKey, Scope, HttpContext,
                     CookieBasedUserIDLifetime, SuppressReadErrors);
             }
         }
@@ -297,8 +297,8 @@ namespace Univar
                     var childKey = key.Substring(sourceKey.Length);
                     if (regexChildSelector == null || regexChildSelector.IsMatch(childKey))
                         SetData(key, null);
+                    matchingKeys.Add(key);
                 }
-                matchingKeys.Add(key);
             }
             return matchingKeys;
         }
@@ -433,12 +433,12 @@ namespace Univar
 
         public override string ToString()
         {
-            return Serializer.Serialize<T>(this.Value, JsonEncoding.None, false);
+            return Serializer.Serialize<T>(this.Value, false);
         }
 
         public virtual string ToString(JsonEncoding encoder)
         {
-            return Serializer.Serialize<T>(Value, encoder, false);
+            return Serializer.Serialize<T>(Value, false, encoder, false);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Univar
                 _objectsToPersist.AddRange(objectsToPersist);
 
             string parentKey = string.Format("{0} Property for {1}", _propertyName,
-                   StorageUser.GetKeyByScope(SourceKey,
+                   Storage.User.GetKeyByScope(SourceKey,
                    GetSourceScope(DataSources[0]).Scope, HttpContext,
                    CookieBasedUserIDLifetime, SuppressReadErrors));
 

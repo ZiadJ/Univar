@@ -9,7 +9,7 @@ namespace Univar
 {
     /// <summary>
     /// A class used to manipulate the query string. All methods actually return NameValueCollection.
-    /// The ToString method must be used to obtain the string representation of the latter.
+    /// The ToString method must be used to obtain an actual query string.
     /// </summary>
     public class QueryStringBuilder
     {
@@ -64,7 +64,7 @@ namespace Univar
         public QueryStringBuilder(bool mergeWithCurrentQueryString, string queryStringOrFullPath)
         {
             _queryStringCollection = mergeWithCurrentQueryString
-                ? StorageUser.HttpContext.Request.QueryString
+                ? Storage.User.HttpContext.Request.QueryString
                 : new NameValueCollection();
 
             var queryStringStart = queryStringOrFullPath.IndexOf('?');
@@ -92,7 +92,7 @@ namespace Univar
         public QueryStringBuilder(bool mergeWithCurrentQueryString, Dictionary<string, string> queryStringDictionary)
         {
             _queryStringCollection = mergeWithCurrentQueryString
-                ? StorageUser.HttpContext.Request.QueryString
+                ? Storage.User.HttpContext.Request.QueryString
                 : new NameValueCollection();
 
             foreach (var nameValuePair in queryStringDictionary)
@@ -109,7 +109,7 @@ namespace Univar
         public QueryStringBuilder(bool mergeWithCurrentQueryString, NameValueCollection queryStringCollection)
         {
             _queryStringCollection = mergeWithCurrentQueryString
-                ? StorageUser.HttpContext.Request.QueryString
+                ? Storage.User.HttpContext.Request.QueryString
                 : new NameValueCollection();
 
             if (queryStringCollection != null)
@@ -144,7 +144,7 @@ namespace Univar
 
         public NameValueCollection Append<T>(string key, T value, bool compress, bool encrypt, bool suppressSerializeError)
         {
-            string queryValue = Serializer.Serialize<T>(value, JsonEncoding.None, suppressSerializeError);
+            string queryValue = Serializer.Serialize<T>(value, suppressSerializeError);
 
             // Compression is applied before encryption since the unencrypted text usually
             // contains more repetitive patterns the compression can use.

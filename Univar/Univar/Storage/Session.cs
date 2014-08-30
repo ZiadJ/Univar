@@ -15,7 +15,7 @@ namespace Univar
 {
     public static partial class Storage
     {
-        public class Session
+        public static class Session
         {
             /// <summary>
             /// Gets and sets TimeSpan allowed between requests before the
@@ -24,8 +24,8 @@ namespace Univar
             /// <value>The time-out period, in minutes.</value>
             public static TimeSpan DefaultSessionLifeTime
             {
-                get { return TimeSpan.FromMinutes(StorageUser.HttpContext.Session.Timeout); }
-                set { StorageUser.HttpContext.Session.Timeout = (int)value.TotalMinutes; }
+                get { return TimeSpan.FromMinutes(User.HttpContext.Session.Timeout); }
+                set { User.HttpContext.Session.Timeout = (int)value.TotalMinutes; }
             }
 
             /// <summary>
@@ -35,8 +35,8 @@ namespace Univar
             /// <value>The time-out period, in minutes.</value>
             public static int TimeOut
             {
-                get { return StorageUser.HttpContext.Session.Timeout; }
-                set { StorageUser.HttpContext.Session.Timeout = value; }
+                get { return User.HttpContext.Session.Timeout; }
+                set { User.HttpContext.Session.Timeout = value; }
             }
 
             public static string Get(string key)
@@ -63,7 +63,7 @@ namespace Univar
                 //    throw new InvalidOperationException(
                 //        "The session state is null. This happens when it is accessed before the PreInit event of the HttpContext.");
 
-                object value = ((StorageUser.HttpContext ?? httpContext).Session)[key];
+                object value = ((User.HttpContext ?? httpContext).Session)[key];
                 if (value != null)
                     return (T)value;
                 else
@@ -84,14 +84,14 @@ namespace Univar
             /// <param name="httpContext">The HttpContext from which the request is made. This is only required during asynchronous operations where HttpRuntime.Cache is null.</param>
             public static void Set<T>(string key, T value, HttpContext httpContext)
             {
-                if (StorageUser.HttpContext == null && httpContext == null)
+                if (User.HttpContext == null && httpContext == null)
                     throw new ArgumentException("The session object is not accessible. This might happen during asynchronous operations. To get the HttpContext property must reference the HttpContext from which this method is being called."
                         , "HttpContext");
 
                 if (value != null)
-                    (httpContext == null ? StorageUser.HttpContext.Session : httpContext.Session)[key] = value;
+                    (httpContext == null ? User.HttpContext.Session : httpContext.Session)[key] = value;
                 else
-                    (httpContext == null ? StorageUser.HttpContext.Session : httpContext.Session).Remove(key);
+                    (httpContext == null ? User.HttpContext.Session : httpContext.Session).Remove(key);
             }
 
             public static IEnumerable<string> GetKeys()
@@ -106,7 +106,7 @@ namespace Univar
 
             public static IEnumerable<string> GetKeys(Regex regexMatcher, HttpContext httpContext)
             {
-                var session = (httpContext == null ? StorageUser.HttpContext.Session : httpContext.Session);
+                var session = (httpContext == null ? User.HttpContext.Session : httpContext.Session);
 
                 foreach (var key in session.Keys)
                     if (regexMatcher == null || regexMatcher.IsMatch(key.ToString()))

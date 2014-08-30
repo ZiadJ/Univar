@@ -11,6 +11,7 @@ using System.Web.UI;
 using Univar.Helpers;
 using System.Security;
 using System.Security.AccessControl;
+using System.Text.RegularExpressions;
 
 namespace Univar
 {
@@ -33,7 +34,7 @@ namespace Univar
             /// </summary>
             public static double MaximumFileSize = 5 * 1024 * 1024;
 
-            public struct JsonRecord<T>
+            public struct JsonDocItem<T>
             {
                 public DateTime? ExpiryDate;
                 public T Data;
@@ -51,7 +52,7 @@ namespace Univar
             /// issues set the path to the appropriate location and make sure it has read/write access
             /// rights when deployed on the server.
             /// </summary>
-            public static string DefaultJsonDocFolderPath
+            public static string JsonDocFolderPath
             {
                 get
                 {
@@ -78,62 +79,72 @@ namespace Univar
                 }
             }
 
-            public static T Get<T>(string key)
+            //public static T Get<T>(string key, bool decrypt)
+            //{
+            //    return Serializer.Deserialize<T>(GetFromFile(null, null, key, decrypt), default(T), true);
+            //}
+
+
+            public static T Get<T>(string key, bool uncompress, bool decrypt)
             {
-                return Serializer.Deserialize<T>(Get(null, key, false), JsonEncoding.None, default(T), true);
+                return Serializer.Deserialize<T>(Get(null, key, uncompress, decrypt), default(T), true);
             }
 
-
-            public static T Get<T>(string key, bool decrypt)
+            public static T Get<T>(string folderPath, string fileName, string key, bool uncompress, bool decrypt)
             {
-                return Serializer.Deserialize<T>(Get(null, key, decrypt), JsonEncoding.None, default(T), true);
-            }
-
-            public static T Get<T>(string folderPath, string fileName, string key, bool decrypt)
-            {
-                return Serializer.Deserialize<T>(GetFromFile(folderPath, fileName, key, decrypt), JsonEncoding.None, default(T), true);
+                return Serializer.Deserialize<T>(GetFromFile(folderPath, fileName, key, uncompress, decrypt), default(T), true);
             }
 
             public static string Get(string key)
             {
-                return Get(null, key, false);
+                return Get(null, key, false, false);
             }
 
-            public static string Get(string key, bool decrypt)
-            {
-                return Get(null, key, decrypt);
-            }
+            //public static string Get(string key)
+            //{
+            //    return Get(null, key, false);
+            //}
 
-            public static string Get(string folderPath, string key, bool decrypt)
+            public static string Get(string folderPath, string key, bool uncompress, bool decrypt)
             {
                 var keys = key.Split(Storage.KeyDelimiter);
                 if (keys.Length > 1)
                     key = keys[1];
 
-                return GetFromFile(folderPath, keys[0], key, decrypt);
+                return GetFromFile(folderPath, keys[0], key, uncompress, decrypt);
             }
 
-            public static string GetFromFile(string folderPath, string fileName, string key, bool decrypt)
+            public static string GetFromFile(string folderPath, string fileName, string key, bool uncompress, bool decrypt)
             {
                 folderPath = GetFolder(folderPath, false);
-                fileName = GetFilePath(folderPath ?? DefaultJsonDocFolderPath, fileName);
+                fileName = GetFilePath(folderPath ?? JsonDocFolderPath, fileName);
 
                 if (!File.Exists(fileName))
                     return null;
 
-                Dictionary<string, JsonRecord<object>> dictionary;
+                Dictionary<string, JsonDocItem<string>> dictionary;
                 try
                 {
-                    dictionary = Serializer.Deserialize<Dictionary<string, JsonRecord<object>>>(File.ReadAllText(fileName), true);
+                    dictionary = Serializer.Deserialize<Dictionary<string, JsonDocItem<string>>>(File.ReadAllText(fileName), true);
 
                     if (dictionary != null && dictionary.Keys.Contains(key))
                     {
                         if (DateTime.Now > (dictionary[key].ExpiryDate ?? DateTime.MaxValue))
-                            WriteFile<object>(folderPath, fileName, key, null, null, false, MaximumFileSize, true);
+                        {
+                            WriteToFile<object>(folderPath, fileName, key, null, null, false, false, MaximumFileSize, true);
+                        }
                         else
-                            return decrypt
-                                ? Encryptor.Decrypt(dictionary[key].Data.ToString(), true)
-                                : dictionary[key].Data.ToString();
+                        {
+                            string value = dictionary[key].Data;
+
+                            if (decrypt)
+                                value = Encryptor.Decrypt(value, true);
+
+                            if (uncompress)
+                                value = Compressor.UncompressFromBase64(value, true);
+
+                            return value;
+                        }
                     }
                 }
                 catch (Exception)
@@ -145,59 +156,62 @@ namespace Univar
 
             public static void Set<T>(string key, T value)
             {
-                Set<T>(null, key, value, null, false, null, false);
+                Set<T>(null, key, value, null, false, false, null, false);
             }
 
-            public static void Set<T>(string key, T value, bool encrypt)
+            public static void Set<T>(string key, T value, bool compress, bool encrypt)
             {
-                Set<T>(null, key, value, null, encrypt, null, false);
+                Set<T>(null, key, value, null, compress, encrypt, null, false);
             }
 
-            public static void Set<T>(string key, T value, TimeSpan? lifeTime, bool encrypt)
+            public static void Set<T>(string key, T value, TimeSpan? lifeTime, bool compress, bool encrypt)
             {
-                Set<T>(null, key, value, lifeTime, encrypt, null, false);
+                Set<T>(null, key, value, lifeTime, compress, encrypt, null, false);
             }
 
-            public static void Set<T>(string key, T value, TimeSpan? lifeTime, bool encrypt, double? maxFileSize)
+            public static void Set<T>(string key, T value, TimeSpan? lifeTime, bool compress, bool encrypt, double? maxFileSize)
             {
-                Set<T>(null, key, value, lifeTime, encrypt, maxFileSize, false);
+                Set<T>(null, key, value, lifeTime, compress, encrypt, maxFileSize, false);
             }
 
-            public static void Set<T>(string key, T value, TimeSpan? lifeTime, bool encrypt, double? maxFileSize, bool suppressReadErrors)
+            public static void Set<T>(string key, T value, TimeSpan? lifeTime, bool compress, bool encrypt, double? maxFileSize, bool suppressReadErrors)
             {
-                Set<T>(null, key, value, lifeTime, encrypt, maxFileSize, suppressReadErrors);
+                Set<T>(null, key, value, lifeTime, compress, encrypt, maxFileSize, suppressReadErrors);
             }
 
-            public static void Set<T>(string folderPath, string key, T value, TimeSpan? lifeTime, bool encrypt, double? maxFileSize, bool suppressReadErrors)
+            public static void Set<T>(string folderPath, string key, T value, TimeSpan? lifeTime, bool compress, bool encrypt, double? maxFileSize, bool suppressReadErrors)
             {
                 var keys = key.Split(Storage.KeyDelimiter);
                 if (keys.Length > 1)
                     key = keys[1];
 
-                WriteFile<T>(folderPath, keys[0], key, value, lifeTime, encrypt, maxFileSize, suppressReadErrors);
+                WriteToFile<T>(folderPath, keys[0], key, value, lifeTime, compress, encrypt, maxFileSize, suppressReadErrors);
             }
 
-            public static void WriteFile<T>(string folderPath, string fileName, string key, T value, TimeSpan? lifeTime, bool encrypt, double? maxFileSize, bool suppressReadErrors)
+            public static void WriteToFile<T>(string folderPath, string fileName, string key, T value, TimeSpan? lifeTime, bool compress, bool encrypt, double? maxFileSize, bool suppressReadErrors)
             {
                 string filePath = VerifyFile(folderPath, fileName, key, maxFileSize);
 
                 try
                 {
-                    var JsonDocData = new JsonRecord<object>();
+                    var JsonDocData = new JsonDocItem<string>();
 
                     if (lifeTime.HasValue)
                         JsonDocData.ExpiryDate = DateTime.Now.Add(lifeTime.Value);
 
-                    if (encrypt)
-                        JsonDocData.Data = Encryptor.Encrypt(Serializer.Serialize<T>(value, suppressReadErrors));
-                    else
-                        JsonDocData.Data = value;
+                    JsonDocData.Data = Serializer.Serialize<T>(value, suppressReadErrors);
 
-                    var dataDictionary = Serializer.Deserialize<Dictionary<string, JsonRecord<object>>>(
+                    if (compress)
+                        JsonDocData.Data = Compressor.CompressToBase64(JsonDocData.Data);
+
+                    if (encrypt)
+                        JsonDocData.Data = Encryptor.Encrypt(JsonDocData.Data);
+
+                    var dataDictionary = Serializer.Deserialize<Dictionary<string, JsonDocItem<string>>>(
                         File.ReadAllText(filePath), suppressReadErrors);
 
                     if (dataDictionary == null)
-                        dataDictionary = new Dictionary<string, JsonRecord<object>>();
+                        dataDictionary = new Dictionary<string, JsonDocItem<string>>();
 
                     if (value == null)
                     {
@@ -286,27 +300,27 @@ namespace Univar
                 }
             }
 
-            public static List<T> GetAppendedList<T>(string key)
+            public static List<T> GetLog<T>(string key)
             {
                 string filePath = GetFilePath(key);
-                return GetAppendedList<T>(null, filePath, key, false);
+                return GetLog<T>(null, filePath, key, false);
             }
 
-            public static List<T> GetAppendedList<T>(string key, bool decrypt)
+            public static List<T> GetLog<T>(string key, bool decrypt)
             {
                 string filePath = GetFilePath(key);
-                return GetAppendedList<T>(null, filePath, key, decrypt);
+                return GetLog<T>(null, filePath, key, decrypt);
             }
 
-            public static List<T> GetAppendedList<T>(string folderPath, string key, bool decrypt)
+            public static List<T> GetLog<T>(string folderPath, string key, bool decrypt)
             {
                 string filePath = GetFilePath(folderPath, key);
-                return GetAppendedList<T>(folderPath, filePath, key, decrypt);
+                return GetLog<T>(folderPath, filePath, key, decrypt);
             }
 
-            public static List<T> GetAppendedList<T>(string folderPath, string fileName, string key, bool decrypt)
+            public static List<T> GetLog<T>(string folderPath, string fileName, string key, bool decrypt)
             {
-                fileName = GetFilePath(folderPath ?? DefaultJsonDocFolderPath, fileName);
+                fileName = GetFilePath(folderPath ?? JsonDocFolderPath, fileName);
 
                 if (!File.Exists(fileName))
                     return null;
@@ -339,28 +353,28 @@ namespace Univar
             }
 
 
-            public static void AppendToList<T>(string key, T value)
+            public static void Log<T>(string key, T value)
             {
-                AppendToList<T>(null, key, value, false, null, false);
+                Log<T>(null, key, value, false, null, false);
             }
 
-            public static void AppendToList<T>(string key, T value, bool encrypt)
+            public static void Log<T>(string key, T value, bool encrypt)
             {
-                AppendToList<T>(null, key, value, encrypt, null, false);
+                Log<T>(null, key, value, encrypt, null, false);
             }
 
-            public static void AppendToList<T>(string key, T value, bool encrypt, double? maxFileSize)
+            public static void Log<T>(string key, T value, bool encrypt, double? maxFileSize)
             {
-                AppendToList<T>(null, key, value, encrypt, maxFileSize, false);
+                Log<T>(null, key, value, encrypt, maxFileSize, false);
             }
 
-            public static void AppendToList<T>(string folderPath, string key, T value, bool encrypt, double? maxFileSize, bool suppressReadErrors)
+            public static void Log<T>(string folderPath, string key, T value, bool encrypt, double? maxFileSize, bool suppressReadErrors)
             {
                 string filePath = GetFilePath(folderPath, key);
-                AppendToList<T>(folderPath, filePath, key, value, encrypt, maxFileSize, suppressReadErrors);
+                Log<T>(folderPath, filePath, key, value, encrypt, maxFileSize, suppressReadErrors);
             }
 
-            public static void AppendToList<T>(string folderPath, string fileName, string key, T value, bool encrypt, double? maxFileSize, bool suppressReadErrors)
+            public static void Log<T>(string folderPath, string fileName, string key, T value, bool encrypt, double? maxFileSize, bool suppressReadErrors)
             {
                 string filePath = VerifyFile(folderPath, fileName, key, maxFileSize);
                 if (encrypt)
@@ -369,18 +383,18 @@ namespace Univar
                     Serializer.SerializeToEndOfFile(filePath, true, value);
             }
 
-            public static void SetAppendableList<T>(string key, List<T> list, bool suppressReadErrors)
+            public static void SetLogData<T>(string key, List<T> list, bool suppressReadErrors)
             {
-                SetAppendableList<T>(null, key, list, suppressReadErrors);
+                SetLogData<T>(null, key, list, suppressReadErrors);
             }
 
-            public static void SetAppendableList<T>(string folderPath, string key, List<T> list, bool suppressReadErrors)
+            public static void SetLogData<T>(string folderPath, string key, List<T> list, bool suppressReadErrors)
             {
                 string filePath = GetFilePath(folderPath, key);
-                SetAppendableList<T>(folderPath, filePath, key, list, suppressReadErrors);
+                SetLogData<T>(folderPath, filePath, key, list, suppressReadErrors);
             }
 
-            public static void SetAppendableList<T>(string folderPath, string fileName, string key, List<T> list, bool suppressReadErrors)
+            public static void SetLogData<T>(string folderPath, string fileName, string key, List<T> list, bool suppressReadErrors)
             {
                 var filePath = VerifyFile(folderPath, fileName, key, null);
 
@@ -405,7 +419,7 @@ namespace Univar
 
             public static void Remove(string key, Scope scope)
             {
-                key = StorageUser.GetKeyByScope(key, scope, null, null, true);
+                key = User.GetKeyByScope(key, scope, null, null, true);
                 Set<object>(key, null);
             }
 
@@ -417,7 +431,7 @@ namespace Univar
             public static string GetFilePath(string folderPath, string fileName)
             {
                 if (string.IsNullOrEmpty(folderPath))
-                    folderPath = GetFolder(DefaultJsonDocFolderPath, true);
+                    folderPath = GetFolder(JsonDocFolderPath, true);
 
                 if (folderPath != null && fileName != null && fileName.ToLower().StartsWith(folderPath.ToLower()))
                     return fileName;
@@ -433,7 +447,7 @@ namespace Univar
             public static string GetFolder(string folderPath, bool createWhenNotFound)
             {
                 if (string.IsNullOrEmpty(folderPath))
-                    folderPath = DefaultJsonDocFolderPath;
+                    folderPath = JsonDocFolderPath;
 
                 if (folderPath.StartsWith("~"))
                     folderPath = HostingEnvironment.MapPath(folderPath);
@@ -475,15 +489,53 @@ namespace Univar
                     return -1;
             }
 
-            //public static IEnumerable<string> GetKeys()
-            //{
-            //    return GetKeys(null);
-            //}
+            public static string GetFilenameByScope(string scopeKey, string childKey)
+            {
+                //return string.IsNullOrEmpty(scopeKey) ? "Shared-" + childKey : scopeKey;
+                return string.IsNullOrEmpty(scopeKey) ? childKey : scopeKey;
+            }
 
-            //public static IEnumerable<string> GetAllKeys<T>(string key)
-            //{
-            //    throw new NotImplementedException();
-            //}
+            public static IEnumerable<string> GetKeys()
+            {
+                return GetKeys(null);//, Scope.None);
+            }
+
+            public static IEnumerable<string> GetKeys(Regex regexMatcher)//, Scope scope)
+            {
+                var list = new List<string>();
+
+                try
+                {
+                    var dir = new DirectoryInfo(JsonDocFolderPath);
+                    var files = dir.EnumerateFiles("*.json", SearchOption.TopDirectoryOnly);
+
+                    foreach (var file in files)
+                    {
+                        var fileName = HttpUtility.UrlDecode(file.Name.Substring(0, file.Name.Length - file.Extension.Length));
+
+                        var keys = fileName.Split(KeyDelimiter);
+                        //var key = keys[0];
+
+                        //if (key.StartsWith("Shared-"))
+                        //    key = key.Substring("Shared-".Length);
+
+                        if (regexMatcher == null || regexMatcher.IsMatch(keys[0]))
+                        {
+                            //key = keys[0];
+                            //if (keys.Length > 1)
+                            //    key += KeyDelimiter + keys[1];
+                            list.Add(fileName);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+
+                return list;
+            }
+
         }
     }
 }

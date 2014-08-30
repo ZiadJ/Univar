@@ -15,11 +15,22 @@ using System.ComponentModel;
 
 namespace Univar.Helpers
 {
-    public enum JsonEncoding { None, Html, Url, GZipBase64 }
+    public enum JsonEncoding
+    {
+        None,
+        Html,
+        Url,
+        //GZipBase64
+    }
 
     public static class Serializer
     {
-        public static Newtonsoft.Json.Formatting Formatting { get; set; }
+        public static Newtonsoft.Json.Formatting DefaultJsonFormat { get; set; }
+
+        //private static bool IsPrimitiveType(Type type)
+        //{
+        //    return (type == typeof(object) || Type.GetTypeCode(type) != TypeCode.Object);
+        //}
 
         //static bool UseJsonNetSerrializer { get; set; }
         /// <summary>
@@ -30,7 +41,7 @@ namespace Univar.Helpers
         /// <returns></returns>
         public static string Serialize<T>(T obj)
         {
-            return Serialize<T>(obj, JsonEncoding.None, false);
+            return Serialize<T>(obj, false, JsonEncoding.None, false);
         }
 
         //static bool UseJsonNetSerrializer { get; set; }
@@ -42,7 +53,7 @@ namespace Univar.Helpers
         /// <returns></returns>
         public static string Serialize<T>(T obj, bool suppressErrors)
         {
-            return Serialize<T>(obj, JsonEncoding.None, suppressErrors);
+            return Serialize<T>(obj, false, JsonEncoding.None, suppressErrors);
         }
 
         /// <summary>
@@ -52,7 +63,28 @@ namespace Univar.Helpers
         /// <param name="obj">The object to serialize.</param>
         /// <param name="format">The text encoder used(None, Html, Url).</param>
         /// <returns></returns>
-        public static string Serialize<T>(T obj, JsonEncoding format, bool suppressErrors)
+        public static string Serialize<T>(T obj, bool serializePrimitives, JsonEncoding format, bool suppressErrors)
+        {
+            var jsonText = Serialize<T>(obj, serializePrimitives, suppressErrors);
+
+            switch (format)
+            {
+                case JsonEncoding.Html:
+                    return HttpUtility.HtmlEncode(jsonText);
+                case JsonEncoding.Url:
+                    return HttpUtility.UrlEncode(jsonText);
+                default:
+                    return jsonText;
+            }
+        }
+
+        /// </summary>
+        /// <typeparam name="T">The object type</typeparam>
+        /// <param name="obj">The object to serialize.</param>
+        /// <param name="deserializePrimitives">When false primitive types are set as plain text without the double quotes. 
+        /// This is particularly useful when saving to cookies or querystrings.</param>
+        /// <returns></returns>       
+        public static string Serialize<T>(T obj, bool serializeValueTypes, bool suppressErrors)
         {
             if (obj == null)
                 return null;
@@ -61,25 +93,20 @@ namespace Univar.Helpers
             //    return SerializeAndCompress(obj);
 
             string jsonText = null;
-            Type type = typeof(T);
 
-            // Primitive types are not serialized and are returned as such.
-            if ((type.IsPrimitive || type.Name == "String"))
+            var type = typeof(T);
+
+            if (!serializeValueTypes && (type == typeof(string) || type.IsValueType)) // Type.GetTypeCode(typeof(T)) != TypeCode.Object)
             {
+                // Avoid adding double quotes for primitives to stay in line with the cookie and querystring format.
                 jsonText = obj.ToString();
             }
             else
             {
-                //DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T));
-                //MemoryStream ms = new MemoryStream();
-                //ser.WriteObject(ms, obj);
-                //ms.Position = 0;
-                //jsonText = new StreamReader(ms).ReadToEnd();
-
                 try
                 {
                     jsonText = JsonConvert.SerializeObject(obj
-                        , Formatting
+                        , DefaultJsonFormat
                         , new JsonSerializerSettings
                         {
                             NullValueHandling = NullValueHandling.Ignore,
@@ -93,15 +120,7 @@ namespace Univar.Helpers
                 }
             }
 
-            switch (format)
-            {
-                case JsonEncoding.Html:
-                    return HttpUtility.HtmlEncode(jsonText);
-                case JsonEncoding.Url:
-                    return HttpUtility.UrlEncode(jsonText);
-                default:
-                    return jsonText;
-            }
+            return jsonText;
         }
 
         public static void SerializeToFile<T>(string filePath, T value)
@@ -111,10 +130,14 @@ namespace Univar.Helpers
 
             try
             {
-                using (FileStream fs = File.Open(filePath, FileMode.Open))
-                using (StreamWriter sw = new StreamWriter(fs))
-                using (var jw = new JsonTextWriter(sw) { CloseOutput = true, Formatting = Newtonsoft.Json.Formatting.Indented })
-                    new JsonSerializer().Serialize(jw, value);
+                //using (FileStream fs = File.Open(filePath, FileMode.Open))
+                //using (StreamWriter sw = new StreamWriter(fs))
+                //using (var jw = new JsonTextWriter(sw) { CloseOutput = true, Formatting = Newtonsoft.Json.Formatting.Indented })
+                //    new JsonSerializer().Serialize(jw, value);
+
+                // Replacement for above method which failed to shrink the file when data was deleted.
+                using (StreamWriter sw = File.CreateText(filePath))
+                    new JsonSerializer { Formatting = Newtonsoft.Json.Formatting.Indented }.Serialize(sw, value);
             }
             catch (Exception ex)
             {
@@ -152,7 +175,7 @@ namespace Univar.Helpers
         /// <returns>The deserialized object of type T</returns>
         public static T Deserialize<T>(string jsonText, bool suppressErrors)
         {
-            return Deserialize<T>(jsonText, JsonEncoding.None, default(T), suppressErrors);
+            return Deserialize<T>(jsonText, false, JsonEncoding.None, default(T), suppressErrors);
         }
 
         /// <summary>
@@ -160,12 +183,11 @@ namespace Univar.Helpers
         /// </summary>
         /// <typeparam name="T">The return type</typeparam>
         /// <param name="jsonText">The Json text.</param>
-        /// <param name="format">The text encoder type(None, Html, Url).</param>.
-        /// <param name="deserializePrimitives">When false primitive types are not deserialized and are returnes as such.</param>
+        /// <param name="defaultValueOnError">The default value used if a deserialization error occurs.</param>
         /// <returns>The deserialized object of type T</returns>
-        public static T Deserialize<T>(string jsonText, JsonEncoding format, bool suppressErrors)
+        public static T Deserialize<T>(string jsonText, T defaultValueOnError, bool suppressErrors)
         {
-            return Deserialize<T>(jsonText, format, default(T), suppressErrors);
+            return Deserialize<T>(jsonText, false, JsonEncoding.None, defaultValueOnError, suppressErrors);
         }
 
         /// <summary>
@@ -173,10 +195,11 @@ namespace Univar.Helpers
         /// </summary>
         /// <typeparam name="T">The return type</typeparam>
         /// <param name="jsonText">The Json text.</param>
+        /// <param name="deserializePrimitives">When false primitive types are cast directly instead going through the process of deserialization.</param>
         /// <param name="encoder">The text encoder type.</param>.
         /// <param name="defaultValueOnError">The default value used if a deserialization error occurs.</param>
         /// <returns>The deserialized object of type T</returns>
-        public static T Deserialize<T>(string jsonText, JsonEncoding format, T defaultValueOnError, bool suppressErrors)
+        public static T Deserialize<T>(string jsonText, bool deserializePrimitives, JsonEncoding format, T defaultValueOnError, bool suppressErrors)
         {
             if (jsonText == null)
                 return default(T);
@@ -194,27 +217,37 @@ namespace Univar.Helpers
                     break;
             }
 
+            return Deserialize<T>(jsonText, deserializePrimitives, defaultValueOnError, suppressErrors);
+        }
+
+        /// <summary>
+        /// Deserializes from a Json string.
+        /// </summary>
+        /// <typeparam name="T">The return type</typeparam>
+        /// <param name="jsonText">The Json text.</param>
+        /// <param name="defaultValueOnError">The default value used if a deserialization error occurs.</param>
+        /// <returns>The deserialized object of type T</returns>
+        public static T Deserialize<T>(string jsonText, bool serializeValueTypes, T defaultValueOnError, bool suppressErrors)
+        {
             try
             {
-                Type type = typeof(T);
+                var type = typeof(T);
 
-                //Primitive types are not deserialized and are returned as such.
-                if ((type.IsPrimitive || type.Name == "String"))
+                // type.IsPrimitive does not cover dates and Type.GetTypeCode(type) != TypeCode.Object) does not cover enums.
+                if (!serializeValueTypes && (type == typeof(string) || type.IsValueType))
                 {
-                    return string.IsNullOrEmpty(jsonText)
-                        ? default(T)
-                        : (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(jsonText);
+                    // The Serialize method does not quote primitives, like should be the case normally, to stay in line with the 
+                    // cookie and querystring format and therefore can be casted directly.
+                    if (type.IsEnum)
+                        return (T)Enum.Parse(type, jsonText); // (T)TypeDescriptor.GetConverter(type).ConvertFromInvariantString(jsonText);
+                    else
+                        return (T)Convert.ChangeType(jsonText, type);
                 }
                 else
                 {
-                    //var ser = new DataContractJsonSerializer(typeof(T));
-                    //return (T)ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(jsonText)));
-
-                    if (type.Name == "Object")
-                        return (T)(object)jsonText;
-                    else
-                        return JsonConvert.DeserializeObject<T>(jsonText);
+                    return JsonConvert.DeserializeObject<T>(jsonText);
                 }
+
             }
             catch (Exception ex)
             {
